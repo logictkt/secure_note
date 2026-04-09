@@ -1,0 +1,10 @@
+<h1>Users</h1>
+
+<ul>
+  <% @users.each do |user| %>
+    <li>
+      <%= link_to user.email_address, user_path(user) %>
+      （<%= link_to ".md", user_path(user, format: :md) %>）
+    </li>
+  <% end %>
+</ul>
