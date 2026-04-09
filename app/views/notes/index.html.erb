@@ -1,0 +1,25 @@
+<% content_for :title, "Secure Notes" %>
+
+<div class="secure-notes">
+  <div class="secure-notes__header">
+    <h1>Secure Notes</h1>
+    <%= link_to "新しいノートを作成", new_note_path, class: "btn btn--primary" %>
+  </div>
+
+  <p class="secure-notes__desc">
+    タイトルと本文は <code>ActiveRecord::Encryption</code> によって暗号化されて DB に保存されます。
+  </p>
+
+  <% if @notes.empty? %>
+    <p class="secure-notes__empty">ノートがありません。</p>
+  <% else %>
+    <ul class="note-list">
+      <% @notes.each do |note| %>
+        <li class="note-list__item">
+          <%= link_to note.title, note_path(note), class: "note-list__title" %>
+          <span class="note-list__date"><%= note.created_at.strftime("%Y-%m-%d %H:%M") %></span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

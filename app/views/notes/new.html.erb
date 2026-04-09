@@ -1,0 +1,9 @@
+<% content_for :title, "新しいノート" %>
+
+<div class="secure-notes">
+  <h1>新しいノートを作成</h1>
+  <p class="secure-notes__desc">
+    入力内容は <code>ActiveRecord::Encryption</code> によって暗号化されて保存されます。
+  </p>
+  <%= render "form", note: @note %>
+</div>

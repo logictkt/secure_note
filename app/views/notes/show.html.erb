@@ -1,0 +1,49 @@
+<% content_for :title, @note.title %>
+
+<div class="secure-note-show">
+  <div class="secure-note-show__header">
+    <h1><%= @note.title %></h1>
+    <div class="secure-note-show__actions">
+      <%= link_to "編集", edit_note_path(@note), class: "btn" %>
+      <%= button_to "削除", note_path(@note), method: :delete,
+            data: { turbo_confirm: "本当に削除しますか？" }, class: "btn btn--danger" %>
+      <%= link_to "一覧へ戻る", notes_path, class: "btn btn--secondary" %>
+    </div>
+  </div>
+
+  <div class="note-body">
+    <%= simple_format(@note.body) %>
+  </div>
+
+  <%# =========================================================== %>
+  <%# ActiveRecord::Encryption デモ: DB 生データとの比較          %>
+  <%# =========================================================== %>
+  <details class="encryption-demo">
+    <summary>🔐 暗号化デモ — DB の生データを見る</summary>
+    <div class="encryption-demo__inner">
+      <p>以下は <code>SELECT title, body FROM notes WHERE id = <%= @note.id %></code> の結果です。</p>
+
+      <table class="encryption-table">
+        <thead>
+          <tr>
+            <th>カラム</th>
+            <th>Rails から見た値（復号済み）</th>
+            <th>DB の生データ（暗号化済み）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>title</code></td>
+            <td class="decrypted"><%= @note.title %></td>
+            <td class="encrypted"><code><%= @raw_title %></code></td>
+          </tr>
+          <tr>
+            <td><code>body</code></td>
+            <td class="decrypted"><%= @note.body %></td>
+            <td class="encrypted"><code><%= @raw_body %></code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>

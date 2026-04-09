@@ -30,6 +30,12 @@
     <% if alert %>
       <div class="flash flash--alert"><%= alert %></div>
     <% end %>
+    <% if authenticated? %>
+      <nav class="app-nav">
+        <%= link_to "Secure Notes", notes_path %>
+        <%= link_to "ログアウト", session_path, data: { turbo_method: :delete } %>
+      </nav>
+    <% end %>
     <%= yield %>
   </body>
 </html>
