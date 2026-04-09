@@ -1,4 +1,4 @@
-<h1>Home <small>(default)</small></h1>
+<h1>Home <small>(admin)</small></h1>
 
 <nav>
   <% if authenticated? %>
@@ -12,9 +12,16 @@
 
 <hr>
 
+<h2>管理者メニュー</h2>
+<ul>
+  <li><%= link_to "ユーザー一覧", users_path %></li>
+  <li><%= link_to "ユーザー一覧 (.md)", users_path(format: :md) %></li>
+</ul>
+
+<hr>
+
 <p>
   動作確認用リンク:<br>
-  <%= link_to "?admin=true", root_path(admin: true) %> |
-  <%= link_to "?console=true", root_path(console: true) %> |
+  <%= link_to "default に戻る", root_path %> |
   <%= link_to "?admin=true&console=true", root_path(admin: true, console: true) %>
 </p>

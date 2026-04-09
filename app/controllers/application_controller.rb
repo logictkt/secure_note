@@ -5,4 +5,15 @@ class ApplicationController < ActionController::Base
 
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
+
+  before_action :set_variants
+
+  private
+
+  def set_variants
+    variants = []
+    variants << :admin   if params[:admin]   == "true"
+    variants << :console if params[:console] == "true"
+    request.variant = variants
+  end
 end
