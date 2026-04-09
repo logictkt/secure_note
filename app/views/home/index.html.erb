@@ -1,0 +1,22 @@
+<h1>Home</h1>
+
+<nav>
+  <% if authenticated? %>
+    <p>ログイン中</p>
+    <%= button_to "ログアウト", session_path, method: :delete %>
+  <% else %>
+    <%= link_to "新規会員登録", new_registration_path %> |
+    <%= link_to "ログイン", new_session_path %>
+  <% end %>
+</nav>
+
+<h2>合言葉</h2>
+<%= Rails.application.credentials.aikotoba %>
+
+<hr>
+
+<%= Current.session.to_json %>
+
+<hr>
+
+<%= Current.user.to_json %>
