@@ -1,0 +1,311 @@
+<%# Rails バリデーション網羅デモフォーム %>
+<% content_for :title, "Rails バリデーション デモ" %>
+
+<div class="validation-demo">
+  <h1>Rails バリデーション 網羅デモ</h1>
+  <p class="description">
+    このフォームは Rails の主要なバリデーションをすべて実装したサンプルです。<br>
+    <code>app/models/article.rb</code> のコメントと照らし合わせてご確認ください。
+  </p>
+
+  <%= form_with model: @article, url: articles_path, class: "validation-form" do |f| %>
+
+    <%# エラー一覧 %>
+    <% if @article.errors.any? %>
+      <div class="error-explanation">
+        <h2>
+          <%= @article.errors.count %> 件のエラーがあります
+        </h2>
+        <ul>
+          <% @article.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%# ------------------------------------------------------------------ %>
+    <%# 1. presence / 3. length (minimum/maximum) / 14. confirmation        %>
+    <%# ------------------------------------------------------------------ %>
+    <section class="form-section">
+      <h2>基本情報</h2>
+
+      <div class="field <%= 'field--error' if @article.errors[:title].any? %>">
+        <%= f.label :title do %>
+          タイトル
+          <span class="validation-hint">presence / length 3〜100文字</span>
+        <% end %>
+        <%= f.text_field :title, placeholder: "3〜100文字で入力" %>
+        <% if @article.errors[:title].any? %>
+          <span class="field-error"><%= @article.errors[:title].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:body].any? %>">
+        <%= f.label :body do %>
+          本文
+          <span class="validation-hint">presence / length 最低10文字 / validates_with ContentValidator（title より長くすること）</span>
+        <% end %>
+        <%= f.text_area :body, rows: 5, placeholder: "10文字以上、かつ title より長く入力" %>
+        <% if @article.errors[:body].any? %>
+          <span class="field-error"><%= @article.errors[:body].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:author_name].any? %>">
+        <%= f.label :author_name do %>
+          著者名
+          <span class="validation-hint">presence / length in 2〜50文字</span>
+        <% end %>
+        <%= f.text_field :author_name, placeholder: "2〜50文字" %>
+        <% if @article.errors[:author_name].any? %>
+          <span class="field-error"><%= @article.errors[:author_name].first %></span>
+        <% end %>
+      </div>
+    </section>
+
+    <%# ------------------------------------------------------------------ %>
+    <%# 7. format / 14. confirmation                                        %>
+    <%# ------------------------------------------------------------------ %>
+    <section class="form-section">
+      <h2>メールアドレス</h2>
+
+      <div class="field <%= 'field--error' if @article.errors[:email].any? %>">
+        <%= f.label :email do %>
+          メールアドレス
+          <span class="validation-hint">presence / format (URI::MailTo::EMAIL_REGEXP)</span>
+        <% end %>
+        <%= f.email_field :email, placeholder: "user@example.com" %>
+        <% if @article.errors[:email].any? %>
+          <span class="field-error"><%= @article.errors[:email].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:email_confirmation].any? %>">
+        <%= f.label :email_confirmation do %>
+          メールアドレス（確認）
+          <span class="validation-hint">confirmation — case_sensitive: false で大文字小文字を無視して email と一致するか検証</span>
+        <% end %>
+        <%= f.email_field :email_confirmation, placeholder: "上と同じアドレスを入力" %>
+        <% if @article.errors[:email_confirmation].any? %>
+          <span class="field-error"><%= @article.errors[:email_confirmation].first %></span>
+        <% end %>
+      </div>
+    </section>
+
+    <%# ------------------------------------------------------------------ %>
+    <%# 8. inclusion / 9. exclusion                                         %>
+    <%# ------------------------------------------------------------------ %>
+    <section class="form-section">
+      <h2>ステータスとコンテンツ種別</h2>
+
+      <div class="field <%= 'field--error' if @article.errors[:status].any? %>">
+        <%= f.label :status do %>
+          ステータス
+          <span class="validation-hint">inclusion — draft / published / archived のいずれか</span>
+        <% end %>
+        <%= f.select :status,
+          [["-- 選択してください --", ""],
+           ["下書き (draft)", "draft"],
+           ["公開済み (published)", "published"],
+           ["アーカイブ (archived)", "archived"],
+           ["【エラー例】無効な値 (invalid)", "invalid"]],
+          {},
+          class: "select-field" %>
+        <% if @article.errors[:status].any? %>
+          <span class="field-error"><%= @article.errors[:status].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:content_type].any? %>">
+        <%= f.label :content_type do %>
+          コンテンツ種別
+          <span class="validation-hint">exclusion — admin / system / root は禁止。allow_blank: true で空欄は許可</span>
+        <% end %>
+        <%= f.select :content_type,
+          [["-- 空欄（許可）--", ""],
+           ["article", "article"],
+           ["【エラー例】admin（禁止）", "admin"],
+           ["【エラー例】system（禁止）", "system"]],
+          {},
+          class: "select-field" %>
+        <% if @article.errors[:content_type].any? %>
+          <span class="field-error"><%= @article.errors[:content_type].first %></span>
+        <% end %>
+      </div>
+    </section>
+
+    <%# ------------------------------------------------------------------ %>
+    <%# 10. numericality (price) / 11. numericality (priority)              %>
+    <%# 12. numericality even + allow_nil (score)                           %>
+    <%# ------------------------------------------------------------------ %>
+    <section class="form-section">
+      <h2>数値バリデーション</h2>
+
+      <div class="field <%= 'field--error' if @article.errors[:price].any? %>">
+        <%= f.label :price do %>
+          価格
+          <span class="validation-hint">numericality — 0 より大きく 1,000,000 以下</span>
+        <% end %>
+        <%= f.number_field :price, step: "0.01", min: 0.01, placeholder: "例: 1500.00" %>
+        <% if @article.errors[:price].any? %>
+          <span class="field-error"><%= @article.errors[:price].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:priority].any? %>">
+        <%= f.label :priority do %>
+          優先度
+          <span class="validation-hint">numericality — only_integer: true, 1〜10 の整数</span>
+        <% end %>
+        <%= f.number_field :priority, min: 1, max: 10, placeholder: "1〜10" %>
+        <% if @article.errors[:priority].any? %>
+          <span class="field-error"><%= @article.errors[:priority].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:score].any? %>">
+        <%= f.label :score do %>
+          スコア
+          <span class="validation-hint">numericality — even: true（偶数のみ）+ allow_nil: true（空欄OK）</span>
+        <% end %>
+        <%= f.number_field :score, placeholder: "偶数を入力（例: 10）または空欄" %>
+        <% if @article.errors[:score].any? %>
+          <span class="field-error"><%= @article.errors[:score].first %></span>
+        <% end %>
+      </div>
+    </section>
+
+    <%# ------------------------------------------------------------------ %>
+    <%# 5. length is: / 4. length in: / 6. length max + allow_blank        %>
+    <%# ------------------------------------------------------------------ %>
+    <section class="form-section">
+      <h2>文字列チェック</h2>
+
+      <div class="field <%= 'field--error' if @article.errors[:zip_code].any? %>">
+        <%= f.label :zip_code do %>
+          郵便番号
+          <span class="validation-hint">length — is: 7（ちょうど7文字）+ allow_blank: true</span>
+        <% end %>
+        <%= f.text_field :zip_code, placeholder: "例: 1234567（空欄もOK）" %>
+        <% if @article.errors[:zip_code].any? %>
+          <span class="field-error"><%= @article.errors[:zip_code].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:summary].any? %>">
+        <%= f.label :summary do %>
+          概要
+          <span class="validation-hint">length — maximum: 200 + allow_blank: true / on: :update 時は presence 必須</span>
+        <% end %>
+        <%= f.text_area :summary, rows: 3, placeholder: "200文字以内（任意）" %>
+        <% if @article.errors[:summary].any? %>
+          <span class="field-error"><%= @article.errors[:summary].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:color_code].any? %>">
+        <%= f.label :color_code do %>
+          カラーコード
+          <span class="validation-hint">カスタム EachValidator (ColorCodeValidator) — #RRGGBB 形式 + allow_blank: true</span>
+        <% end %>
+        <%= f.text_field :color_code, placeholder: "例: #FF5733（空欄もOK）" %>
+        <% if @article.errors[:color_code].any? %>
+          <span class="field-error"><%= @article.errors[:color_code].first %></span>
+        <% end %>
+      </div>
+    </section>
+
+    <%# ------------------------------------------------------------------ %>
+    <%# 17. on: :create (slug) / 2. absence (legacy_field)                  %>
+    <%# ------------------------------------------------------------------ %>
+    <section class="form-section">
+      <h2>コンテキスト / absence バリデーション</h2>
+
+      <div class="field <%= 'field--error' if @article.errors[:slug].any? %>">
+        <%= f.label :slug do %>
+          スラッグ
+          <span class="validation-hint">on: :create — valid?(:create) のときのみ presence チェック</span>
+        <% end %>
+        <%= f.text_field :slug, placeholder: "例: my-article" %>
+        <% if @article.errors[:slug].any? %>
+          <span class="field-error"><%= @article.errors[:slug].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:legacy_field].any? %>">
+        <%= f.label :legacy_field do %>
+          旧フィールド（legacy_field）
+          <span class="validation-hint">absence — 値を入力するとエラーになる（廃止フィールドの強制空欄）</span>
+        <% end %>
+        <%= f.text_field :legacy_field, placeholder: "値を入れるとエラーになります" %>
+        <% if @article.errors[:legacy_field].any? %>
+          <span class="field-error"><%= @article.errors[:legacy_field].first %></span>
+        <% end %>
+      </div>
+    </section>
+
+    <%# ------------------------------------------------------------------ %>
+    <%# 13. acceptance / 16. conditional if: / 15. comparison               %>
+    <%# ------------------------------------------------------------------ %>
+    <section class="form-section">
+      <h2>日付・同意・条件付きバリデーション</h2>
+
+      <div class="field field--checkbox <%= 'field--error' if @article.errors[:terms_accepted].any? %>">
+        <%= f.check_box :terms_accepted %>
+        <%= f.label :terms_accepted do %>
+          利用規約に同意する
+          <span class="validation-hint">acceptance — チェックが必須</span>
+        <% end %>
+        <% if @article.errors[:terms_accepted].any? %>
+          <span class="field-error"><%= @article.errors[:terms_accepted].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field field--checkbox <%= 'field--error' if @article.errors[:published].any? %>">
+        <%= f.check_box :published %>
+        <%= f.label :published do %>
+          公開する
+          <span class="validation-hint">if: :published? — チェックすると published_at が必須になる</span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:published_at].any? %>">
+        <%= f.label :published_at do %>
+          公開日時
+          <span class="validation-hint">conditional (if: :published?) — 「公開する」にチェックがあるときのみ presence 検証</span>
+        <% end %>
+        <%= f.datetime_local_field :published_at %>
+        <% if @article.errors[:published_at].any? %>
+          <span class="field-error"><%= @article.errors[:published_at].first %></span>
+        <% end %>
+      </div>
+
+      <div class="field <%= 'field--error' if @article.errors[:expiry_date].any? %>">
+        <%= f.label :expiry_date do %>
+          有効期限
+          <span class="validation-hint">comparison (Rails 7+) — published_at より後 + カスタム validate（未来日）+ allow_nil: true</span>
+        <% end %>
+        <%= f.datetime_local_field :expiry_date %>
+        <% if @article.errors[:expiry_date].any? %>
+          <span class="field-error"><%= @article.errors[:expiry_date].first %></span>
+        <% end %>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <%= f.submit "バリデーションを実行する", class: "btn-submit" %>
+    </div>
+
+  <% end %>
+
+  <div class="note-box">
+    <h3>補足: コントローラーは <code>valid?(:create)</code> を使用</h3>
+    <ul>
+      <li><strong>on: :create</strong> → <code>valid?(:create)</code> で検証（slug の presence が走る）</li>
+      <li><strong>on: :update</strong> → <code>valid?(:update)</code> で検証（summary の presence が走る）</li>
+      <li><strong>strict:</strong> → エラー追加ではなく <code>ActiveModel::StrictValidationFailed</code> を raise</li>
+      <li><strong>uniqueness</strong> → ActiveRecord 専用（DB クエリが必要）。ActiveModel::Model では使用不可</li>
+    </ul>
+  </div>
+</div>
